@@ -37,12 +37,20 @@ module.exports = {
       },
       wrongPassword: {
         description: 'La contraseña entregada no corresponde a la del usuario en el sistema',
-        statusCode: 401
+        statusCode: 400
       },
       notEnoughMoney: {
         description: 'No se pudo consumir el servicio porque el usuario no cuenta con suficiente saldo en su cuenta para comprar una fraccion',
         statusCode: 402,
         outputExample: 'No hay saldo suficiente para seguir'
+      },
+      alreadyLoggued: {
+        description: 'El usuario ya tiene una sesion activa en el sistema, debe terminarla antes de volver a ingresar',
+        statusCode: 409
+      },
+      insufficientInfo: {
+        description: 'El usuario no ha presentado informacion suficiente para su registro',
+        statusCode: 206
       }
     },
     fn: async function (inputs, exits) {
@@ -56,16 +64,38 @@ module.exports = {
       if (!user) {
         return exits.userNotFound("El nombre de usuario no corresponde a un usuario inscrito");
       }
+      if(user.restaurar_pass){
+        await Cliente.update({
+          id: user.id
+        }).set({
+          password: inputs.password,
+          restaurar_pass: false
+        });
+        user.password = inputs.password;
+        user.restaurar_pass = false;
+      }
       if (user.password == inputs.password) {
-        if (user.sesion_activa != null) {
-          await Sesion.update({
-            id: user.sesion_activa.id
-          }).set({
-            equipo: inputs.equipo
+        if (user.admin || user.operario) {
+          await AdminLog.create({
+            fecha: Date.now(),
+            anotacion: `${user.username} ha iniciado sesion en el equipo ${inputs.equipo}`
           });
-          return exits.success(user.sesion_activa.id);
+          this.req.session.usuario = {
+            id: user.id,
+            username: user.username,
+            operario: user.operario,
+            admin: user.admin,
+            equipo: inputs.equipo
+          };
+          return exits.success(0);
         }
-        if(user.saldo < precio_fraccion){
+        if (user.sesion_activa != null) {
+          return exits.alreadyLoggued("Tiene una sesion ya iniciada, primero debe terminarla para iniciar otra");
+        }
+        if (!user.info) {
+          return exits.insufficientInfo(user.id);
+        }
+        if (user.saldo < precio_fraccion) {
           return exits.notEnoughMoney("No hay suficiente saldo para la minima fraccion");
         }
         let sesion = await Sesion.create({
@@ -78,12 +108,16 @@ module.exports = {
         }).set({
           sesion_activa: sesion.id
         });
+        this.req.session.usuario = {
+          id: user.id,
+          username: user.username,
+          equipo: inputs.equipo
+        };
         return exits.success(sesion.id);
       }
       return exits.wrongPassword("La contraseña no corresponde a la inscrita por el usuario");
     }
   },
-
   consume: {
     friendlyName: 'Consumir servicio',
     description: 'Consume los minutos pagados y si estos se acaban genera un cobro por una nueva fraccion',
@@ -156,7 +190,6 @@ module.exports = {
       return exits.notEnoughMoney("No hay suficiente saldo para la minima fraccion");
     }
   },
-
   logout: {
     friendlyName: 'Desconectar Usuario',
     description: 'Cerrar la sesion activa del usuario',
@@ -183,6 +216,13 @@ module.exports = {
       }
     },
     fn: async function (inputs, exits) {
+      if(this.req.session.usuario.operario || this.req.session.usuario.admin){
+        await AdminLog.create({
+          fecha: Date.now(),
+          anotacion: `${this.req.usuario.username} ha cerrado sesion en el equipo ${this.req.usuario.equipo}`
+        });
+        return exits.success("Sesion cerrada correctamente");
+      }
       let fin = Date.now();
       let sesion = await Sesion.findOne({
         id: inputs.sesion
@@ -203,6 +243,7 @@ module.exports = {
       }).set({
         sesion_activa: null
       });
+      this.req.session = undefined;
       return exits.success("Sesion cerrada correctamente");
     }
   }

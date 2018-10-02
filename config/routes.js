@@ -20,5 +20,10 @@ module.exports.routes = {
   'GET /watchmonitor': 'AdminController.watchmonitor',
   'POST /newsale': 'InventarioController.newSale',
   'POST /checkstock': 'InventarioController.checkstock',
-  'POST /restock': 'InventarioController.restock'
+  'POST /restock': 'InventarioController.restock',
+  'POST /restorepass': 'ClienteController.restorepass',
+  'POST /loginop': 'AdminController.loginop',
+  'POST /sesionreport': 'AdminController.sesionreport',
+  'POST /replacesaldo': 'AdminController.replacesaldo',
+  'POST /saveinfo': 'ClienteController.saveinfo'
 };

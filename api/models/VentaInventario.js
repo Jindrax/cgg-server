@@ -23,6 +23,10 @@ module.exports = {
     utilidad:{
       type: 'number',
       required: true
+    },
+    vendedor:{
+      type: 'ref',
+      required: true
     }
   },
 

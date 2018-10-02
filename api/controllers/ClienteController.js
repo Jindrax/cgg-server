@@ -10,10 +10,6 @@ module.exports = {
     friendlyName: 'Añadir saldo',
     description: 'Añade saldo al cliente',
     inputs: {
-      operario: {
-        type: 'ref',
-        required: true
-      },
       cliente: {
         type: 'ref',
         required: true
@@ -41,12 +37,10 @@ module.exports = {
       }
     },
     fn: async function (inputs, exits) {
-      let operario = await Cliente.findOne({
-        id: inputs.operario
-      });
-      if (!operario) {
-        return exits.operarioNotFound('Operario no encontrado');
+      if (this.req.session == undefined) {
+        return exits.unauthorized();
       }
+      let operario = this.req.session.usuario;
       if (!operario.admin) {
         if (!operario.operario) {
           return exits.unauthorized('Operario no autorizado');
@@ -101,6 +95,80 @@ module.exports = {
         saldo: cliente.saldo
       })
       return exits.success(`${inputs.valor_recibido + saldo_promocional} pesos cargados, nuevo saldo: ${inputs.valor_recibido + saldo_promocional}`);
+    }
+  },
+  restorepass: {
+    friendlyName: 'Restaurar contraseña',
+    description: 'Habilita al usuario para que en su siguiente inicio de sesion modifique la contraseña que usara en adelante',
+    inputs: {
+      cliente_user: {
+        type: 'string',
+        required: true
+      },
+      cliente: {
+        type: 'ref',
+        required: true
+      }
+    },
+    exits: {
+      success: {
+        description: 'El usuario puede reiniciar su contraseña.'
+      },
+      error: {
+        description: 'Algo salio mal',
+        statusCode: 500
+      },
+      unauthorized: {
+        description: 'El usuario no tiene permisos para realizar esta accion',
+        statusCode: 401
+      }
+    },
+    fn: async function (inputs, exits) {
+        if (this.req.session == undefined) {
+          return exits.unauthorized();
+        }
+        await Cliente.update({
+          id: inputs.cliente
+        }).set({
+          restaurar_pass: true
+        });
+        await AdminLog.create({
+          fecha: Date.now(),
+          anotacion: `${this.req.session.usuario.username} avaló el cambio de contraseña del usuario ${inputs.cliente_user}.`
+        });
+        return exits.success(`${inputs.cliente_user} puede reiniciar su contraseña`);
+      }
+  },
+  saveinfo: {
+    friendlyName: 'Guardar informacion de un cliente',
+    description: 'Guarda la informacion adicional de un cliente para su uso por la administracion',
+    inputs: {
+      info: {
+        type: 'json',
+        required: true
+      }
+    },
+    exits: {
+      success: {
+        description: 'El usuario puede reiniciar su contraseña.'
+      },
+      error: {
+        description: 'Algo salio mal',
+        statusCode: 500
+      }
+    },
+    fn: async function (inputs, exits) {
+      await Cliente.update({
+        id: inputs.info.id
+      }).set({
+        nombres: inputs.info.nombres,
+        apellidos: inputs.info.apellidos,
+        email: inputs.info.email,
+        telefono: inputs.info.telefono,
+        nacimiento: inputs.info.nacimiento,
+        info: true
+      });
+      return exits.success();
     }
   }
 };

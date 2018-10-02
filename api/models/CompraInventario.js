@@ -23,6 +23,10 @@ module.exports = {
     precio_compra: {
       type: 'number',
       required: true
+    },
+    comprador: {
+      type: 'ref',
+      required: true
     }
   },
 

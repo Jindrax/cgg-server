@@ -25,6 +25,10 @@ module.exports = {
       utilidad: {
         type: 'number',
         required: true
+      },
+      vendedor: {
+        type: 'ref',
+        required: true
       }
     },
     exits: {
@@ -51,7 +55,8 @@ module.exports = {
             fecha: inputs.fecha,
             items: inputs.items,
             total: inputs.total,
-            utilidad: inputs.utilidad
+            utilidad: inputs.utilidad,
+            vendedor: inputs.vendedor
           })
           return exits.success("Venta registrada correctamente");
         }else{
@@ -116,6 +121,10 @@ module.exports = {
       precio_compra: {
         type: 'number',
         required: true
+      },
+      comprador: {
+        type: 'ref',
+        required: true
       }
     },
     exits: {
@@ -141,7 +150,8 @@ module.exports = {
         fecha: Date.now(),
         item: item.descripcion,
         unidades: inputs.unidades,
-        precio_compra: inputs.precio_compra
+        precio_compra: inputs.precio_compra,
+        comprador: inputs.comprador
       });
       return exits.success("Item recargado correctamente");
     }

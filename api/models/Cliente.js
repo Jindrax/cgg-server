@@ -56,6 +56,34 @@ module.exports = {
     },
     sesion_activa: {
       model: 'sesion'
+    },
+    restaurar_pass:{
+      type: 'boolean',
+      defaultsTo: false
+    },
+    nombres:{
+      type: 'string',
+      defaultsTo: 'n.n'
+    },
+    apellidos:{
+      type: 'string',
+      defaultsTo: 'n.n'
+    },
+    email:{
+      type: 'string',
+      defaultsTo: 'none'
+    },
+    telefono:{
+      type: 'string',
+      defaultsTo: 'none'
+    },
+    nacimiento:{
+      type: 'number',
+      defaultsTo: 0
+    },
+    info:{
+      type: 'boolean',
+      defaultsTo: false
     }
   },
 
