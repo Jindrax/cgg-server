@@ -189,9 +189,7 @@ module.exports = {
       }
     },
     fn: async function (inputs, exits) {
-      if (this.req.session) {
-        if (this.req.usuario.admin) {
-          let inicioMillis = DateTime.fromMillis(inputs.inicio).startOf('day').toMillis();
+      let inicioMillis = DateTime.fromMillis(inputs.inicio).startOf('day').toMillis();
           let finMillis = DateTime.fromMillis(inputs.fin).endOf('day').toMillis();
           let cobros = await Cobro.find({
             fecha: {
@@ -234,14 +232,16 @@ module.exports = {
               saldo_consumido: sesion.saldo_consumido
             }
           });
+      /*if (this.req.session) {
+        if (this.req.usuario.admin) {
+          
           return exits.success(retorno);
         } else {
           return exits.unauthorized('Permisos insuficientes');
         }
       } else {
         return exits.unauthorized('Permisos insuficientes');
-      }
+      }*/
     }
   }
-
 };
