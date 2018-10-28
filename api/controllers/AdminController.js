@@ -74,6 +74,26 @@ module.exports = {
       return exits.success(equipos);
     }
   },
+  refreshmonitor: {
+    friendlyName: 'Observar equipos',
+    description: 'Obtener y observar los equipos del local',
+    inputs: {
+
+    },
+    exits: {
+      success: {
+        description: 'Se entregaron y registraron todos los equipos'
+      },
+      error: {
+        description: 'Ocurrio un error',
+        statusCode: 500
+      }
+    },
+    fn: async function (inputs, exits) {
+      let equipos = await Monitor.find().populate("cliente");
+      return exits.success(equipos);
+    }
+  },
   loginop: {
     friendlyName: 'Loguear un administrador u operario',
     description: 'Funcion para iniciar sesion de un usuario del sistema con privilegios',
@@ -148,10 +168,13 @@ module.exports = {
           let cliente = await Cliente.findOne({
             id: inputs.cliente
           });
-          await Cliente.update({
-            id: inputs.cliente
-          }).set({
-            saldo: inputs.valor
+          await sails.helpers.registroContable({
+            fecha: Date.now(),
+            operario: this.req.session.usuario.id,
+            cliente: inputs.cliente,
+            valor: inputs.valor - cliente.saldo,
+            valor_promocional: 0,
+            saldo: cliente.saldo
           });
           await AdminLog.create({
             fecha: Date.now(),

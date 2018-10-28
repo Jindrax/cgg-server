@@ -18,6 +18,7 @@ module.exports.routes = {
   'POST /addcredit': 'ClienteController.addcredit',
   'POST /register': 'AdminController.register',
   'GET /watchmonitor': 'AdminController.watchmonitor',
+  'GET /refreshmonitor': 'AdminController.refreshmonitor',
   'POST /newsale': 'InventarioController.newSale',
   'POST /checkstock': 'InventarioController.checkstock',
   'POST /restock': 'InventarioController.restock',

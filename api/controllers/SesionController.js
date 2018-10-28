@@ -121,6 +121,7 @@ module.exports = {
 					admin: user.admin,
 					equipo: inputs.equipo
 				};
+				await sails.helpers.monitorLogin(inputs.equipo, user);
 				return exits.success(sesion.id);
 			}
 			return exits.wrongPassword('La contraseña no corresponde a la inscrita por el usuario');
@@ -283,6 +284,7 @@ module.exports = {
 				sesion_activa: null
 			});
 			this.req.session = undefined;
+			await sails.helpers.monitorLogout(sesion.equipo);
 			return exits.success('Sesion cerrada correctamente');
 		}
 	}

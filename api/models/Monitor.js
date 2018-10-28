@@ -19,6 +19,9 @@ module.exports = {
     activo: {
       type: 'boolean',
       defaultsTo: false
+    },
+    cliente: {
+      model: 'cliente'
     }
   }
 
