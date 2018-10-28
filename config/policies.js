@@ -16,7 +16,11 @@ module.exports.policies = {
   * (`true` allows public access)                                            *
   *                                                                          *
   ***************************************************************************/
-
-  // '*': true,
-
+  SesionController:{
+    'login': true
+  },
+  AdminController:{
+    'loginop': true
+  },
+  '*': 'isLoggedin'
 };
