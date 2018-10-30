@@ -18,7 +18,10 @@ module.exports.session = {
   * of your users, forcing them to log in again.                             *
   *                                                                          *
   ***************************************************************************/
+
+  adapter: '@sailshq/connect-redis',
   secret: '7f5d94256c8d22be77ce7581bf3f1339',
+  url: 'redis://redistogo:43ca8f980dbde29f87a0718c58ec8a90@spinyfin.redistogo.com:10987'
 
 
   /***************************************************************************
