@@ -248,7 +248,7 @@ module.exports = {
          *                                                                          *
          ***************************************************************************/
 
-        adapter: '@sailshq/connect-redis',
+        adapter: '@sailshq/socket.io-redis',
         url: 'redis://redistogo:43ca8f980dbde29f87a0718c58ec8a90@spinyfin.redistogo.com:10987'
 
         // adapter: '@sailshq/socket.io-redis',
@@ -282,7 +282,7 @@ module.exports = {
          * (the "max-age" to include in the "Cache-Control" response header)        *
          *                                                                          *
          ***************************************************************************/
-        cache: 365.25 * 24 * 60 * 60 * 1000 // One year
+        cache: 365.25 * 24 * 60 * 60 * 1000, // One year
 
         /***************************************************************************
          *                                                                          *
@@ -299,7 +299,7 @@ module.exports = {
          * (https://sailsjs.com/config/http)                                        *
          *                                                                          *
          ***************************************************************************/
-        // trustProxy: true,
+        trustProxy: true,
     },
 
     /**************************************************************************
