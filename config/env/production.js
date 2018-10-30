@@ -70,7 +70,7 @@ module.exports = {
             // ssl: true,
 
             adapter: require("sails-mysql"),
-            url: "mysql://b9ecac5f8d54ad:f17963f6@us-cdbr-iron-east-01.cleardb.net/heroku_3d3e446b62ce78e?reconnect=true"
+            url: "mysql://be762a30a0c8d5:6cb70497@us-cdbr-iron-east-01.cleardb.net/heroku_205f5a595b0cd91?reconnect=true"
         }
     },
 
@@ -170,7 +170,7 @@ module.exports = {
          *                                                                          *
          ***************************************************************************/
         adapter: '@sailshq/connect-redis',
-        url: 'redis://redistogo:43ca8f980dbde29f87a0718c58ec8a90@spinyfin.redistogo.com:10987',
+        url: 'redis://rediscloud:pGhoFXWwL18bGGiRzoxUVM2iNJiS2MQp@redis-12021.c114.us-east-1-4.ec2.cloud.redislabs.com:12021',
         // adapter: '@sailshq/connect-redis',
         // url: 'redis://user:password@localhost:6379/databasenumber',
         // --------------------------------------------------------------------------
@@ -249,7 +249,7 @@ module.exports = {
          ***************************************************************************/
 
         adapter: '@sailshq/socket.io-redis',
-        url: 'redis://redistogo:43ca8f980dbde29f87a0718c58ec8a90@spinyfin.redistogo.com:10987'
+        url: 'redis://rediscloud:pGhoFXWwL18bGGiRzoxUVM2iNJiS2MQp@redis-12021.c114.us-east-1-4.ec2.cloud.redislabs.com:12021'
 
         // adapter: '@sailshq/socket.io-redis',
         // url: 'redis://user:password@bigsquid.redistogo.com:9562/databasenumber',
