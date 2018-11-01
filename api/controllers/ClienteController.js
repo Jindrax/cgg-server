@@ -152,12 +152,29 @@ module.exports = {
       success: {
         description: 'El usuario puede reiniciar su contraseña.'
       },
+      notEnoughInfo:{
+        description: 'El usuario no ha llenado la informacion necesaria correctamente',
+        statusCode: 400
+      },
       error: {
         description: 'Algo salio mal',
         statusCode: 500
       }
     },
     fn: async function (inputs, exits) {
+      /*if(_.isNaN(inputs.info.id)){
+        return exits.notEnoughInfo('Informacion erronea o insuficiente');
+      }else if(!_.isString(inputs.info.nombres)){
+        return exits.notEnoughInfo('Informacion erronea o insuficiente');
+      }else if(!_.isString(inputs.info.apellidos)){
+        return exits.notEnoughInfo('Informacion erronea o insuficiente');
+      }else if(!_.isString(inputs.info.email)){
+        return exits.notEnoughInfo('Informacion erronea o insuficiente');
+      }else if(!_.isString(inputs.info.telefono)){
+        return exits.notEnoughInfo('Informacion erronea o insuficiente');
+      }else if(!_.isNaN(inputs.info.nacimiento)){
+        return exits.notEnoughInfo('Informacion erronea o insuficiente');
+      }*/
       await Cliente.update({
         id: inputs.info.id
       }).set({
