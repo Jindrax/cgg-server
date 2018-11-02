@@ -255,16 +255,15 @@ module.exports = {
               saldo_consumido: sesion.saldo_consumido
             }
           });
-      /*if (this.req.session) {
-        if (this.req.usuario.admin) {
-          
+      if (this.req.session) {
+        if (this.req.session.usuario.admin) {          
           return exits.success(retorno);
         } else {
           return exits.unauthorized('Permisos insuficientes');
         }
       } else {
-        return exits.unauthorized('Permisos insuficientes');
-      }*/
+        return exits.unauthorized('Sesion invalida');
+      }
     }
   }
 };
