@@ -283,7 +283,7 @@ module.exports = {
           "<=": 1541156400000
         }
       });
-      _.forEach(cobros, (cobro)=>{
+      _.forEach(cobros, async (cobro)=>{
         await Cobro.update({
           id: cobro.id
         }).set({
@@ -297,7 +297,7 @@ module.exports = {
           "<=": 1541156400000
         }
       });
-      _.forEach(sesiones, (sesion)=>{
+      _.forEach(sesiones, async (sesion)=>{
         await Sesion.update({
           id: sesion.id
         }).set({
