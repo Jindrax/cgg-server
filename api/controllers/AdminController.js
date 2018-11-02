@@ -265,5 +265,53 @@ module.exports = {
         return exits.unauthorized('Sesion invalida');
       }
     }
+  },
+
+  corregirfechas:{
+    friendlyName:"Corregir Fechas",
+    description:"Corrige las fechas que se adelantaron por problemas con el GMT",
+    inputs: {
+
+    },
+    exits: {
+
+    },
+    fn: async function(inputs, exits){
+      let cobros = await Cobro.find({
+        fecha: {
+          ">=": 1541091600000,
+          "<=": 1541156400000
+        }
+      });
+      _.forEach(cobros, (cobro)=>{
+        await Cobro.update({
+          id: cobro.id
+        }).set({
+          createdAt: cobro.createdAt - 18000000,
+          fecha: cobro.fecha - 18000000
+        });
+      });
+      let sesiones = await Sesion.find({
+        inicio: {
+          ">=": 1541091600000,
+          "<=": 1541156400000
+        }
+      });
+      _.forEach(sesiones, (sesion)=>{
+        await Sesion.update({
+          id: sesion.id
+        }).set({
+          createdAt: sesion.createdAt - 18000000,
+          inicio: sesion.inicio - 18000000,
+          fin: sesion.fin==0? 0 : sesion.fin - 18000000,
+          saldo_consumido: sesion.minutos_consumidos * 42 
+        });
+      });
+      return exits.success({
+        mensaje: "Actualizacion de los registros",
+        cobros: cobros,
+        sesiones: sesiones
+      });
+    }
   }
 };

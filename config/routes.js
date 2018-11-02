@@ -26,5 +26,6 @@ module.exports.routes = {
   'POST /loginop': 'AdminController.loginop',
   'POST /sesionreport': 'AdminController.sesionreport',
   'POST /replacesaldo': 'AdminController.replacesaldo',
-  'POST /saveinfo': 'ClienteController.saveinfo'
+  'POST /saveinfo': 'ClienteController.saveinfo',
+  'GET /corregirfechas': 'AdminController.corregirfechas',
 };
