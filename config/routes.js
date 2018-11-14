@@ -25,6 +25,7 @@ module.exports.routes = {
   'POST /restorepass': 'ClienteController.restorepass',
   'POST /loginop': 'AdminController.loginop',
   'POST /sesionreport': 'AdminController.sesionreport',
+  'POST /inventoryreport': 'AdminController.inventoryreport',
   'POST /replacesaldo': 'AdminController.replacesaldo',
   'POST /saveinfo': 'ClienteController.saveinfo',
   'GET /corregirfechas': 'AdminController.corregirfechas',

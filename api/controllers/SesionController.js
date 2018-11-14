@@ -183,7 +183,8 @@ module.exports = {
 				await Sesion.update({
 					id: sesion.id
 				}).set({
-					minutos_consumidos: sesion.minutos_consumidos + 1
+					minutos_consumidos: sesion.minutos_consumidos + 1,
+					saldo_consumido: sesion.saldo_consumido + precio_fraccion
 				});
 				let saldo = sesion.cliente.saldo - precio_fraccion;
 				await Cliente.update({

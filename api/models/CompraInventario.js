@@ -25,7 +25,7 @@ module.exports = {
       required: true
     },
     comprador: {
-      type: 'ref',
+      model: 'cliente',
       required: true
     }
   },
