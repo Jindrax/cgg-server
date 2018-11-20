@@ -1,0 +1,59 @@
+<script>
+    window.onload = function () {
+        var dataPoints = [];
+        var charts = [];
+
+        function addData(data) {
+            for (let j = 0; j < 14; j++) {
+                let day = data[j];
+                let dayData = [];
+                for (var i = 0; i < day.length; i++) {
+                    dayData.push({
+                        x: new Date(day[i].date),
+                        y: day[i].units
+                    });
+                }
+                dataPoints.push(dayData);
+                var chart = new CanvasJS.Chart("chartContainer" + j, {
+                    animationEnabled: true,
+                    theme: "light2",
+                    title: {
+                        text: luxon.DateTime.fromJSDate(dataPoints[j][0].x).setLocale('es-es').toFormat('EEEE dd MMMM')
+                    },
+                    axisY: {
+                        title: "Equipos",
+                        titleFontSize: 24
+                    },
+                    data: [
+                        {
+                            type: "column",
+                            yValueFormatString: "#,### Equipos",
+                            dataPoints: dataPoints[j]
+                        }
+                    ]
+                });
+                charts.push(chart);
+                charts[j].render();
+            }
+        }
+        $.getJSON("https://cggserver.herokuapp.com/informeasistencia", addData);
+    }
+</script>
+
+<div id="chartContainer0" style="height: 370px; width: 100%;"></div>
+<div id="chartContainer1" style="height: 370px; width: 100%;"></div>
+<div id="chartContainer2" style="height: 370px; width: 100%;"></div>
+<div id="chartContainer3" style="height: 370px; width: 100%;"></div>
+<div id="chartContainer4" style="height: 370px; width: 100%;"></div>
+<div id="chartContainer5" style="height: 370px; width: 100%;"></div>
+<div id="chartContainer6" style="height: 370px; width: 100%;"></div>
+<div id="chartContainer7" style="height: 370px; width: 100%;"></div>
+<div id="chartContainer8" style="height: 370px; width: 100%;"></div>
+<div id="chartContainer9" style="height: 370px; width: 100%;"></div>
+<div id="chartContainer10" style="height: 370px; width: 100%;"></div>
+<div id="chartContainer11" style="height: 370px; width: 100%;"></div>
+<div id="chartContainer12" style="height: 370px; width: 100%;"></div>
+<div id="chartContainer13" style="height: 370px; width: 100%;"></div>
+<script src="https://canvasjs.com/assets/script/jquery-1.11.1.min.js"></script>
+<script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/luxon@1.7.1/build/cjs-browser/luxon.min.js"></script>

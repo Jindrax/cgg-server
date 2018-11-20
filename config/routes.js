@@ -30,4 +30,7 @@ module.exports.routes = {
   'POST /saveinfo': 'ClienteController.saveinfo',
   'GET /corregirfechas': 'AdminController.corregirfechas',
   'GET /informeasistencia': 'AdminController.informeasistencia',
+  'GET /horarioChart': {
+    view: 'chart'
+  }
 };
