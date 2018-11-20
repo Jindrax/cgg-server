@@ -21,7 +21,7 @@ module.exports.session = {
 
   adapter: '@sailshq/connect-redis',
   secret: '7f5d94256c8d22be77ce7581bf3f1339',
-  url: 'redis://redistogo:43ca8f980dbde29f87a0718c58ec8a90@spinyfin.redistogo.com:10987'
+  url: 'redis://rediscloud:pGhoFXWwL18bGGiRzoxUVM2iNJiS2MQp@redis-12021.c114.us-east-1-4.ec2.cloud.redislabs.com:12021'
 
 
   /***************************************************************************

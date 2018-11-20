@@ -49,7 +49,7 @@ module.exports.datastores = {
     *                                                                          *
     ***************************************************************************/
     adapter: require('sails-mysql'),
-    url: 'mysql://b9ecac5f8d54ad:f17963f6@us-cdbr-iron-east-01.cleardb.net/heroku_3d3e446b62ce78e?reconnect=true',
+    url: "mysql://be762a30a0c8d5:6cb70497@us-cdbr-iron-east-01.cleardb.net/heroku_205f5a595b0cd91?reconnect=true",
 
   },
 

@@ -223,21 +223,36 @@ module.exports = {
             retorno.cobros = _.map(cobros, cobro => {
                 retorno.total_cobrado += cobro.valor;
                 retorno.total_promocional += cobro.valor_promocional;
+                let operario = cobro.operario
+                    ? cobro.operario
+                    : {
+                        username: "Operario no encontrado"
+                    };
+                let cliente = cobro.cliente
+                    ? cobro.cliente
+                    : {
+                        username: "Cliente no encontrado"
+                    };
                 return {
                     fecha: DateTime.fromMillis(cobro.fecha).toLocaleString(DateTime.DATETIME_SHORT_WITH_SECONDS),
-                    operario: cobro.operario.username,
-                    cliente: cobro.cliente.username,
+                    operario: operario.username,
+                    cliente: cliente.username,
                     valor: cobro.valor,
                     valor_promocional: cobro.valor_promocional
                 };
             });
             retorno.sesiones = _.map(sesiones, sesion => {
                 retorno.total_consumido += sesion.saldo_consumido;
+                let cliente = sesion.cliente
+                    ? sesion.cliente
+                    : {
+                        username: "Cliente no encontrado"
+                    };
                 return {
                     inicio: DateTime.fromMillis(sesion.inicio).toLocaleString(DateTime.DATETIME_SHORT_WITH_SECONDS),
                     fin: DateTime.fromMillis(sesion.fin).toLocaleString(DateTime.DATETIME_SHORT_WITH_SECONDS),
                     equipo: sesion.equipo,
-                    cliente: sesion.cliente.username,
+                    cliente: cliente.username,
                     minutos_consumidos: sesion.minutos_consumidos,
                     saldo_consumido: sesion.saldo_consumido
                 };
@@ -363,6 +378,17 @@ module.exports = {
                 });
             });
             return exits.success({mensaje: "Actualizacion de los registros", cobros: cobros, sesiones: sesiones});
+        }
+    },
+    informeasistencia: {
+        friendlyName: "Informe de asistencia",
+        description: "Genera un informe para identificar las horas de menor asistencia",
+        inputs: {
+        },
+        exits: {},
+        fn: async function (inputs, exits) {
+            let retorno = await sails.helpers.informeAsistencia();
+            return exits.success(retorno);
         }
     }
 };

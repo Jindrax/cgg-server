@@ -29,4 +29,5 @@ module.exports.routes = {
   'POST /replacesaldo': 'AdminController.replacesaldo',
   'POST /saveinfo': 'ClienteController.saveinfo',
   'GET /corregirfechas': 'AdminController.corregirfechas',
+  'GET /informeasistencia': 'AdminController.informeasistencia',
 };
