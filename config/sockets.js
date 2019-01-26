@@ -10,6 +10,10 @@
  */
 
 module.exports.sockets = {
+
+  adapter: '@sailshq/socket.io-redis',
+  url: 'redis://:cehXZ35E62wfMoEKDEnecA2W0oinT7Nz@redis-18828.c98.us-east-1-4.ec2.cloud.redislabs.com:18828/0',
+
     /***************************************************************************
      *                                                                          *
      * `transports`                                                             *

@@ -10,10 +10,12 @@ module.exports = {
     friendlyName: 'Añadir saldo',
     description: 'Añade saldo al cliente',
     inputs: {
+      //Nombre de usuario del cliente al que se desea cargar el saldo
       cliente: {
-        type: 'ref',
+        type: 'string',
         required: true
       },
+      //Valor recibido para cargar al cliente
       valor_recibido: {
         type: 'number',
         required: true
@@ -22,10 +24,6 @@ module.exports = {
     exits: {
       success: {
         description: 'Se añadio el saldo correctamente al usuario.'
-      },
-      operarioNotFound: {
-        description: 'El operario no se encuentra en la base de datos.',
-        statusCode: 404
       },
       unauthorized: {
         description: 'El operario no cuenta con permisos para añadir saldo.',
@@ -37,74 +35,49 @@ module.exports = {
       }
     },
     fn: async function (inputs, exits) {
-      if (this.req.session == undefined) {
-        return exits.unauthorized();
-      }
-      let operario = this.req.session.usuario;
-      if (!operario.admin) {
-        if (!operario.operario) {
-          return exits.unauthorized('Operario no autorizado');
+      try{
+        //Validamos permisos del usuario
+        await sails.helpers.comprobarPermisos(this.req, 'operario');
+        //Buscamos al cliente en la base de datos
+        let cliente = await Cliente.findOne({
+          username: inputs.cliente
+        });
+        //Si el cliente no existe devolvemos un error
+        if (_.isNull(cliente) || _.isUndefined(cliente) || _.isEmpty(cliente)) {
+          return exits.clienteNotFound('cliente no encontrado');
         }
-      }
-      let cliente = await Cliente.findOne({
-        id: inputs.cliente
-      });
-      if (!cliente) {
-        return exits.clienteNotFound('Cliente no encontrado');
-      }
-      if (!cliente.vip) {
+        //En caso contrario actualizamos el saldo y lo registramos
+        await Cliente.update({
+          id: cliente.id
+        }).set({
+          saldo: cliente.saldo + inputs.valor_recibido
+        });
+        //Registramos el hecho contable
         await sails.helpers.registroContable({
           fecha: Date.now(),
-          operario: operario.id,
+          concepto: 'Venta de saldo',
+          operario: this.req.session.usuario.id,
           cliente: cliente.id,
           valor: inputs.valor_recibido,
           saldo: cliente.saldo
         });
         return exits.success(`${inputs.valor_recibido} pesos cargados, nuevo saldo: ${cliente.saldo + inputs.valor_recibido}`);
+      }catch (e) {
+        //El usuario no cuenta con permisos suficientes para la operacion
+        return exits.unauthorized(e);
       }
-      let config_DB = await Configuracion.find({
-        identificador: ['fracciones_minimas_descuento', 'precio_fraccion', 'precio_vip', 'precio_pionero']
-      });
-      let config = {};
-      _.each(config_DB, (valor) => {
-        config[valor.identificador] = Number(valor.valor);
-      });
-      //Significa que es un pionero
-      console.log('No es un cliente normal');
-      console.log('config', config);
-      let fracciones_base = inputs.valor_recibido / config.precio_fraccion;
-      let saldo_total = inputs.valor_recibido;
-      console.log('fracciones_base: ', fracciones_base, ', fracciones_minimas: ', config.fracciones_minimas_descuento);
-      if (fracciones_base >= config.fracciones_minimas_descuento) {
-        console.log('Es una compra minima');
-        if (cliente.meses_constante > 4) {
-          console.log('Es un pionero');
-          saldo_total = _.round((inputs.valor_recibido / config.precio_pionero) * config.precio_fraccion, -2);
-        } else if (cliente.meses_constante >= 3) {
-          console.log('Es un vip');
-          saldo_total = _.round((inputs.valor_recibido / config.precio_vip) * config.precio_fraccion, -2);
-        }
-      }
-      let saldo_promocional = saldo_total - inputs.valor_recibido;
-      await sails.helpers.registroContable({
-        fecha: Date.now(),
-        operario: operario.id,
-        cliente: cliente.id,
-        valor: inputs.valor_recibido,
-        valor_promocional: saldo_promocional,
-        saldo: cliente.saldo
-      })
-      return exits.success(`${inputs.valor_recibido + saldo_promocional} pesos cargados, nuevo saldo: ${inputs.valor_recibido + saldo_promocional}`);
     }
   },
   restorepass: {
     friendlyName: 'Restaurar contraseña',
     description: 'Habilita al usuario para que en su siguiente inicio de sesion modifique la contraseña que usara en adelante',
     inputs: {
+      //Nombre de usuario del cliente, se usa para no acceder innecesariamente a la base de datos
       cliente_user: {
         type: 'string',
         required: true
       },
+      //Id del cliente que solicita el reinicio de su contraseña
       cliente: {
         type: 'ref',
         required: true
@@ -113,31 +86,28 @@ module.exports = {
     exits: {
       success: {
         description: 'El usuario puede reiniciar su contraseña.'
-      },
-      error: {
-        description: 'Algo salio mal',
-        statusCode: 500
-      },
-      unauthorized: {
-        description: 'El usuario no tiene permisos para realizar esta accion',
-        statusCode: 401
       }
     },
     fn: async function (inputs, exits) {
-        if (this.req.session == undefined) {
-          return exits.unauthorized();
-        }
+      try{
+        //Verificamos la validez del usuario que hace la peticion
+        await sails.helpers.comprobarPermisos(this.req, 'admin');
+        //Actualizamos el cliente para permitir que reinicie su contraseña
         await Cliente.update({
           id: inputs.cliente
         }).set({
           restaurar_pass: true
         });
+        //Creamos un registro para la posterior auditoria
         await AdminLog.create({
           fecha: Date.now(),
           anotacion: `${this.req.session.usuario.username} avaló el cambio de contraseña del usuario ${inputs.cliente_user}.`
         });
         return exits.success(`${inputs.cliente_user} puede reiniciar su contraseña`);
+      }catch (e) {
+        return exits.error(e);
       }
+    }
   },
   saveinfo: {
     friendlyName: 'Guardar informacion de un cliente',
@@ -152,7 +122,7 @@ module.exports = {
       success: {
         description: 'El usuario puede reiniciar su contraseña.'
       },
-      notEnoughInfo:{
+      notEnoughInfo: {
         description: 'El usuario no ha llenado la informacion necesaria correctamente',
         statusCode: 400
       },
@@ -186,6 +156,71 @@ module.exports = {
         info: true
       });
       return exits.success();
+    }
+  },
+  upgrademembership: {
+    friendlyName: 'Mejorar cliente a miembro',
+    description: 'Mejora la calidad de un cliente a membresia para acceder a precio especial y a promociones',
+    inputs: {
+      cliente: {
+        type: 'ref',
+        required: true
+      }
+    },
+    exits: {
+      success: {
+        description: 'El usuario ahora es un miembro'
+      },
+      notEnoughMoney: {
+        description: 'El usuario no tiene saldo suficiente para pagar la membresia',
+        statusCode: 400
+      },
+      error: {
+        description: 'Algo salio mal',
+        statusCode: 500
+      }
+    },
+    fn: async function (inputs, exits) {
+      //Buscamos el cliente solicitado
+      let cliente = await Cliente.findone({
+        id: inputs.cliente
+      });
+      //Si no existe el cliente devolvemos un error
+      if (_.isNull(cliente) || _.isUndefined(cliente) || _.isEmpty(cliente)) {
+        return exits.error("cliente no encontrado en la base de datos");
+      }
+      try{
+        //Obtenemos los parametros en tiempo real
+        let config = await sails.helpers.solicitarConfiguraciones(["precio_membresia"]);
+        //Si el cliente no tiene suficiente saldo para comprar la membresia devolvemos un error
+        if (cliente.saldo < config.precio_membresia) {
+          return exits.notEnoughMoney("No hay saldo suficiente para comprar la membresia");
+        } else {
+          try {
+            //Se activa la bandera de miembro y se descuenta el valor de la membresia del saldo del cliente
+            await Cliente.update({
+              id: cliente.id
+            }).set({
+              saldo: cliente.saldo - config.precio_membresia,
+              miembro: true
+            });
+            //Se registra el hecho contable
+            await sails.helpers.registroContable({
+              fecha: Date.now(),
+              concepto: 'Venta membresia',
+              cliente: cliente.id,
+              valor: config.precio_membresia
+            });
+            return exits.success("Membresia comprada correctamente");
+          } catch (e) {
+            //Posible error en la base de datos
+            return exits.error(e);
+          }
+        }
+      }catch (e) {
+        //Posible error con las configuraciones
+        return exits.error(e);
+      }
     }
   }
 };
