@@ -67,20 +67,30 @@ module.exports.routes = {
   /**
    * Rutas CRUD
    */
+  //Cliente
   'POST /db/cliente/crear': {
     action: 'db/cliente/crear'
   },
   'GET /db/cliente/buscar': {
     action: 'db/cliente/buscar'
   },
+  //Cobro
   'GET /db/cobro/buscar': {
     action: 'db/cobro/buscar'
   },
+  //Item
   'POST /db/item/crear': {
     action: 'db/item/crear'
   },
   'GET /db/item/buscar': {
     action: 'db/item/buscar'
+  },
+  //Configuracion
+  'GET /db/configuracion/buscar': {
+    action: 'db/configuracion/buscar'
+  },
+  'POST /db/configuracion/editar': {
+    action: 'db/configuracion/editar'
   },
 
   /**
