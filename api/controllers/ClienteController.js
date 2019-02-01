@@ -5,6 +5,8 @@
  * @help        :: See https://sailsjs.com/docs/concepts/actions
  */
 
+const moment = require("moment");
+
 module.exports = {
   addcredit: {
     friendlyName: 'Añadir saldo',
@@ -35,7 +37,7 @@ module.exports = {
       }
     },
     fn: async function (inputs, exits) {
-      try{
+      try {
         //Validamos permisos del usuario
         await sails.helpers.comprobarPermisos(this.req, 'operario');
         //Buscamos al cliente en la base de datos
@@ -62,7 +64,7 @@ module.exports = {
           saldo: cliente.saldo
         });
         return exits.success(`${inputs.valor_recibido} pesos cargados, nuevo saldo: ${cliente.saldo + inputs.valor_recibido}`);
-      }catch (e) {
+      } catch (e) {
         //El usuario no cuenta con permisos suficientes para la operacion
         return exits.unauthorized(e);
       }
@@ -89,7 +91,7 @@ module.exports = {
       }
     },
     fn: async function (inputs, exits) {
-      try{
+      try {
         //Verificamos la validez del usuario que hace la peticion
         await sails.helpers.comprobarPermisos(this.req, 'admin');
         //Actualizamos el cliente para permitir que reinicie su contraseña
@@ -104,7 +106,7 @@ module.exports = {
           anotacion: `${this.req.session.usuario.username} avaló el cambio de contraseña del usuario ${inputs.cliente_user}.`
         });
         return exits.success(`${inputs.cliente_user} puede reiniciar su contraseña`);
-      }catch (e) {
+      } catch (e) {
         return exits.error(e);
       }
     }
@@ -171,55 +173,55 @@ module.exports = {
       success: {
         description: 'El usuario ahora es un miembro'
       },
-      notEnoughMoney: {
-        description: 'El usuario no tiene saldo suficiente para pagar la membresia',
-        statusCode: 400
-      },
       error: {
         description: 'Algo salio mal',
         statusCode: 500
       }
     },
     fn: async function (inputs, exits) {
-      //Buscamos el cliente solicitado
-      let cliente = await Cliente.findone({
-        id: inputs.cliente
-      });
-      //Si no existe el cliente devolvemos un error
-      if (_.isNull(cliente) || _.isUndefined(cliente) || _.isEmpty(cliente)) {
-        return exits.error("cliente no encontrado en la base de datos");
-      }
-      try{
-        //Obtenemos los parametros en tiempo real
-        let config = await sails.helpers.solicitarConfiguraciones(["precio_membresia"]);
-        //Si el cliente no tiene suficiente saldo para comprar la membresia devolvemos un error
-        if (cliente.saldo < config.precio_membresia) {
-          return exits.notEnoughMoney("No hay saldo suficiente para comprar la membresia");
-        } else {
+      try {
+        //Primero verificamos los permisos del operario
+        let operario = await sails.helpers.comprobarPermisos(this.req, 'operario');
+        //Buscamos el cliente solicitado
+        let cliente = await Cliente.findOne({
+          id: inputs.cliente
+        });
+        //Si no existe el cliente devolvemos un error
+        if (_.isNull(cliente) || _.isUndefined(cliente) || _.isEmpty(cliente)) {
+          return exits.error("cliente no encontrado en la base de datos");
+        }
+        try {
+          //Obtenemos los parametros en tiempo real
+          let config = await sails.helpers.solicitarConfiguraciones(["precio_membresia"]);
           try {
+            let ahora = moment();
+            ahora.add(1, 'y');
             //Se activa la bandera de miembro y se descuenta el valor de la membresia del saldo del cliente
             await Cliente.update({
               id: cliente.id
             }).set({
-              saldo: cliente.saldo - config.precio_membresia,
-              miembro: true
+              miembro: true,
+              miembro_hasta: ahora.valueOf()
             });
             //Se registra el hecho contable
             await sails.helpers.registroContable({
               fecha: Date.now(),
               concepto: 'Venta membresia',
+              operario: operario.id,
               cliente: cliente.id,
-              valor: config.precio_membresia
+              valor: Number(config.precio_membresia)
             });
             return exits.success("Membresia comprada correctamente");
           } catch (e) {
             //Posible error en la base de datos
             return exits.error(e);
           }
+        } catch (e) {
+          //Posible error con las configuraciones
+          return exits.error(e);
         }
-      }catch (e) {
-        //Posible error con las configuraciones
-        return exits.error(e);
+      } catch (e) {
+        return exits.error('Permisos insuficientes para la operacion');
       }
     }
   }

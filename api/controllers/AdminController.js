@@ -185,6 +185,11 @@ module.exports = {
           fecha: Date.now(),
           anotacion: `${this.req.session.usuario.username} ha cambiado el saldo del cliente ${cliente.username}, tenia un saldo de $${cliente.saldo} y ahora tiene un saldo de $${inputs.valor}`
         });
+        await Cliente.update({
+          id: cliente.id
+        }).set({
+          saldo: inputs.valor
+        })
         return exits.success("El saldo ha sido cambiado correctamente");
       } catch (e) {
         return exits.unauthorized(e);
@@ -258,6 +263,7 @@ module.exports = {
             };
           return {
             fecha: DateTime.fromMillis(cobro.fecha).toLocaleString(DateTime.DATETIME_SHORT_WITH_SECONDS),
+            concepto: cobro.concepto,
             operario: operario.username,
             cliente: cliente.username,
             valor: cobro.valor,
@@ -438,7 +444,7 @@ module.exports = {
     fn: async function (inputs, exits) {
       try {
         //Verificamos la validez de la peticion
-        await sails.helpers.comprobarPermisos(this.req, 'operario');
+        let operario = await sails.helpers.comprobarPermisos(this.req, 'operario');
         let cliente = await Cliente.findOne({
           id: inputs.cliente
         });
@@ -451,32 +457,24 @@ module.exports = {
           return exits.notMember('El cliente no es miembro del club');
         }
         //Parametros para la compra
-        let config = await sails.helpers.solicitarConfiguraciones(['contador_promo', 'precio_promo_semana', 'precio_promo_fin_semana', 'hora_cierre', 'dias_fin_semana']);
+        let config = await sails.helpers.solicitarConfiguraciones(['precio_promo_semana', 'precio_promo_fin_semana', 'hora_cierre', 'dias_fin_semana']);
         //Se identifica si aplica la promocion de fin de semana o de semana
-        let precio_promo = _.contains(config.dias_fin_semana.split(','), String(moment().getDay())) ? Number(config.precio_promo_fin_semana) : Number(config.precio_promo_semana);
+        let precio_promo = _.contains(config.dias_fin_semana.split(','), String(moment().day())) ? Number(config.precio_promo_fin_semana) : Number(config.precio_promo_semana);
         let ahora = moment();
-        let codigo = ahora.format('YYWWE') + config.contador_promo;
         try {
           //Se procede a crear la promocion
           let promo = await Promo.create({
-            codigo: codigo,
             cliente: inputs.cliente,
             vendedor: this.req.session.usuario.id,
             fecha_compra: ahora.valueOf(),
-            fecha_expiracion: ahora.hour(config.hora_cierre).minute(0).second(0).millisecond(0).valueOf(),
+            fecha_expiracion: ahora.hour(Number(config.hora_cierre)).minute(0).second(0).millisecond(0).valueOf(),
             precio_compra: precio_promo
           }).fetch();
-          //Se aumenta el contador una vez se ha creado la promocion
-          await Configuracion.update({
-            identificador: 'contador_promo'
-          }).set({
-            valor: String(Number(config.contador_promo) + 1)
-          });
           //Se registra el cobro contablemente
           await sails.helpers.registroContable({
             fecha: ahora.valueOf(),
             concepto: 'Venta promocion',
-            operario: this.req.session.usuario.id,
+            operario: operario.id,
             cliente: inputs.cliente,
             valor: precio_promo
           });
@@ -484,7 +482,7 @@ module.exports = {
           await Cliente.update({
             id: inputs.cliente
           }).set({
-            ultima_promo: promo.codigo
+            ultima_promo: promo.id
           });
           //Se envia la promocion al cliente
           return exits.success(promo);

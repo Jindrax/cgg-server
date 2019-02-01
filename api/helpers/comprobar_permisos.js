@@ -38,13 +38,13 @@ module.exports = {
     }
     if(inputs.permisos_requeridos === 'operario'){
       if(inputs.req.session.usuario.operario || inputs.req.session.usuario.admin){
-        return exits.success();
+        return exits.success(inputs.req.session.usuario);
       }else{
         throw 'Permisos insuficientes';
       }
     }else if(inputs.permisos_requeridos === 'admin'){
       if(inputs.req.session.usuario.admin){
-        return exits.success();
+        return exits.success(inputs.req.session.usuario);
       }else{
         throw 'Permisos insuficientes';
       }

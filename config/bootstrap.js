@@ -9,7 +9,7 @@
  * https://sailsjs.com/config/bootstrap
  */
 
-module.exports.bootstrap = async function(done) {
+module.exports.bootstrap = async function (done) {
 
   // By convention, this is a good place to set up fake data during development.
   //
@@ -29,12 +29,12 @@ module.exports.bootstrap = async function(done) {
 
   // Don't forget to trigger `done()` when this bootstrap function's logic is finished.
   // (otherwise your server will never lift, since it's waiting on the bootstrap)
-  try{
+  try {
     await sails.helpers.solicitarConfiguraciones(["precio_fraccion", "precio_fraccion_miembro",
-      'contador_promo', 'precio_promo_semana', 'precio_promo_fin_semana', 'hora_cierre',
+      'precio_promo_semana', 'precio_promo_fin_semana', 'hora_cierre',
       'dias_fin_semana', 'precio_membresia']);
-  }catch (e) {
-    try{
+  } catch (e) {
+    try {
       console.log(e);
       await Configuracion.createEach([
         {
@@ -44,10 +44,6 @@ module.exports.bootstrap = async function(done) {
         {
           identificador: 'precio_fraccion_miembro',
           valor: '42'
-        },
-        {
-          identificador: 'contador_promo',
-          valor: '0'
         },
         {
           identificador: 'precio_promo_semana',
@@ -70,7 +66,7 @@ module.exports.bootstrap = async function(done) {
           valor: '10000'
         }
       ]);
-    }catch (e) {
+    } catch (e) {
       console.log(e);
     }
   }

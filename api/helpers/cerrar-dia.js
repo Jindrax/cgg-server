@@ -36,13 +36,6 @@ module.exports = {
       let equipos = await Monitor.find().populate("cliente");
       sails.sockets.broadcast('watchmanRoom', 'watchUpdate', equipos);
       console.log('Se liberaron todos los monitores de los equipos');
-      //Reiniciamos los contadores
-      await Configuracion.update({
-        identificador: 'contador_promo'
-      }).set({
-        valor: '0'
-      });
-      console.log('Contadores reiniciados correctamente');
       //Expiramos membresias
       let ahora = moment();
       await Cliente.update({

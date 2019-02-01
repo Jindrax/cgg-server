@@ -28,7 +28,11 @@ module.exports = {
     });
     let config = {};
     _.each(config_DB, (valor) => {
-      config[valor.identificador] = Number(valor.valor);
+      if(_.isNumber(valor)){
+        config[valor.identificador] = Number(valor.valor);
+      }else{
+        config[valor.identificador] = valor.valor;
+      }
     });
     if(_.isEmpty(config)){
       throw 'No se encontro ninguna configuracion pedida'

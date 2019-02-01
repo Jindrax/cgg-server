@@ -20,7 +20,7 @@ module.exports = {
      */
     concepto: {
       type: 'string',
-      required: true
+      defaultsTo: 'Venta de saldo'
     },
     /**
      * @desc el operario o administrador que realizo el hecho contable

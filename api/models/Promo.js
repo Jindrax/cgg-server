@@ -11,17 +11,6 @@ module.exports = {
 
   attributes: {
     /**
-     * @desc Codigo formateado '@MDDYYXX'
-     * M Primera letra del mes
-     * DD dia del mes
-     * YY ultimos dos digitos del año
-     * XX contador de promociones diarias
-     */
-    codigo: {
-      type: 'string',
-      required: true
-    },
-    /**
      * @desc Id del cliente que solicita ha comprado la promocion
      */
     cliente: {

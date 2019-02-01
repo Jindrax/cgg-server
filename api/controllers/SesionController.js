@@ -90,7 +90,7 @@ module.exports = {
           return exits.error(e);
         }
       }
-      //Si el usuario es un operario o administrador llamamos al helper log-op
+      //Si el usuario es un operario o administrador
       if (usuario.operario || usuario.admin) {
         try {
           await AdminLog.create({
@@ -106,54 +106,49 @@ module.exports = {
           };
           //Se actualiza el monitor
           await sails.helpers.monitorLogin(inputs.equipo, usuario);
-          return exits.success({tipo: 'op', payload: 0});
+          return exits.success({ tipo: 'op', payload: 0 });
         } catch (e) {
           return exits.error(e);
         }
       }
       //Comparamos las contraseñas para comprobar la identidad del usuario
-      if (usuario.password !== inputs.password) {
-        //Si la contraseña no corresponde al usuario puede que sea un codigo promocional
-        if (!_.isNull(usuario.ultima_promo)) {
-          return exits.wrongPassword('La contraseña no corresponde a la inscrita por el usuario');
-        }
-        //Recuperamos la promocion a la que hace referencia el usuario
-        try {
-          let promo = Promo.findOne({
-            codigo: inputs.password
-          });
-          //Si no existe la promocion devolvemos un error
-          if (_.isNull(promo) || _.isUndefined(promo) || _.isEmpty(promo)) {
-            return exits.wrongPassword('La contraseña no corresponde a la inscrita por el usuario');
-          }
-          //Si el codigo de la promocion no corresponde al que ingresa el usuario devolvemos un error
-          if (promo.codigo !== inputs.password) {
-            return exits.wrongPassword('La contraseña no corresponde a la inscrita por el usuario');
-          }
-          let ahora = Date.now();
-          //La fecha de expiracion del codigo promocional ha expirado
-          if (ahora > promo.fecha_expiracion) {
-            return exits.error('El codigo promocional ha expirado');
-          }
-
-          //Las condiciones de fallo han sido superadas.
-          this.req.session.usuario = {
-            id: usuario.id,
-            username: usuario.username,
-            operario: usuario.operario,
-            admin: usuario.admin,
-            equipo: inputs.equipo
-          };
-          //Se actualiza el monitor
-          await sails.helpers.monitorLogin(inputs.equipo, usuario);
-          return exits.success({tipo: 'promo', payload: promo});
-        } catch (e) {
-          return exits.error(e);
-        }
-      } else {
+      if (usuario.password === inputs.password) {
         //Si la contraseña es correcta verificamos que la informacion del usuario este completa
         if (!usuario.info) {
           return exits.insufficientInfo(usuario.id);
+        }
+        //Si el usuario ha comprado una promocion verificamos si es valida y esta vigente
+        if (usuario.ultima_promo !== null) {
+          try {
+            //Buscamos la promocion en la base de datos
+            let promo = await Promo.findOne({
+              id: usuario.ultima_promo
+            });
+            //Verificamos la existencia y validez de la promocion
+            if (_.isNull(promo) || _.isUndefined(promo) || _.isEmpty(promo)) {
+              //Si el id de la promocion no existe
+              return exits.error('Promocion vinculada a la cuenta invalida');
+            }else{
+              //Si la promocion es valida
+              let ahora = Date.now();
+              if (promo.fecha_expiracion > ahora) {
+                //Si la fecha de expiracion sigue vigente damos permiso de iniciar sesion como promocion
+                //Se establece la sesion del socket
+                this.req.session.usuario = {
+                  id: usuario.id,
+                  username: usuario.username,
+                  operario: usuario.operario,
+                  admin: usuario.admin,
+                  equipo: inputs.equipo
+                };
+                //Se actualiza el monitor
+                await sails.helpers.monitorLogin(inputs.equipo, usuario);
+                return exits.success({ tipo: 'promo', payload: promo });
+              }
+            }
+          } catch (e) {
+            return exits.error('Ha ocurrido un error en la base de datos.');
+          }
         }
         let config = await sails.helpers.solicitarConfiguraciones(["precio_fraccion", "precio_fraccion_miembro"]);
         //Determinamos la fraccion minima que debe tener el usuario para iniciar sesion
@@ -184,7 +179,9 @@ module.exports = {
         };
         //Se actualiza el monitor
         await sails.helpers.monitorLogin(inputs.equipo, usuario);
-        return exits.success({tipo: 'normal', payload: sesion.id});
+        return exits.success({ tipo: 'normal', payload: sesion.id });
+      } else {
+        return exits.wrongPassword('Contraseña incorrecta');
       }
     }
   },
